@@ -15,60 +15,46 @@ type Contact struct {
 }
 
 var contacts = make(map[int]Contact)
-
 var reader = bufio.NewReader(os.Stdin)
 
 func readLine(prompt string) (string, error) {
-
 	fmt.Print(prompt)
-
 	t, err := reader.ReadString('\n')
 	if err != nil {
 		return "", err
 	}
-
 	return strings.TrimSpace(t), nil
-
 }
 
 func readInt(prompt string) (int, error) {
-
 	s, err := readLine(prompt)
 	if err != nil {
 		return 0, err
 	}
-
 	n, err := strconv.Atoi(s)
 	if err != nil {
 		return 0, fmt.Errorf("veuillez entrer un nombre valide")
 	}
-
 	return n, nil
-
 }
 
 func addContact(c Contact) error {
-
 	if _, exists := contacts[c.ID]; exists {
 		return fmt.Errorf("un contact avec l'ID %d existe déjà", c.ID)
 	}
 	contacts[c.ID] = c
 	return nil
-
 }
 
 func listContacts() {
-
 	if len(contacts) == 0 {
 		fmt.Println("Aucun contact.")
 		return
 	}
-
 	fmt.Println("Contacts:")
 	for _, c := range contacts {
 		fmt.Printf("- ID:%d | Nom:%s | Email:%s\n", c.ID, c.Name, c.Email)
 	}
-
 }
 
 func updateContact(id int, name, email string) error {
@@ -86,10 +72,21 @@ func updateContact(id int, name, email string) error {
 	return nil
 }
 
+func deleteContact(id int) error {
+	if _, exists := contacts[id]; !exists {
+		return fmt.Errorf("aucun contact avec l'ID %d", id)
+	}
+	delete(contacts, id)
+	return nil
+}
+
 func main() {
 
-	for {
+	if handleFlags() {
+		return
+	}
 
+	for {
 		fmt.Println("\n--- Mini-CRM ---")
 		fmt.Println("1. Ajouter un contact")
 		fmt.Println("2. Lister tous les contacts")
@@ -106,24 +103,12 @@ func main() {
 		switch choice {
 		case "1":
 			id, err := readInt("ID: ")
-
 			if err != nil {
 				fmt.Println("Erreur:", err)
 				continue
 			}
-
-			name, err := readLine("Nom: ")
-			if err != nil {
-				fmt.Println("Erreur:", err)
-				continue
-			}
-
-			email, err := readLine("Email: ")
-			if err != nil {
-				fmt.Println("Erreur:", err)
-				continue
-			}
-
+			name, _ := readLine("Nom: ")
+			email, _ := readLine("Email: ")
 			if err := addContact(Contact{ID: id, Name: name, Email: email}); err != nil {
 				fmt.Println("Erreur:", err)
 			} else {
@@ -133,16 +118,25 @@ func main() {
 		case "2":
 			listContacts()
 
-		case "4":
-			id, err := readInt("ID à mettre à jour: ")
-
+		case "3":
+			id, err := readInt("ID à supprimer: ")
 			if err != nil {
 				fmt.Println("Erreur:", err)
 				continue
 			}
+			if err := deleteContact(id); err != nil {
+				fmt.Println("Erreur:", err)
+			} else {
+				fmt.Println("Contact supprimé.")
+			}
 
+		case "4":
+			id, err := readInt("ID à mettre à jour: ")
+			if err != nil {
+				fmt.Println("Erreur:", err)
+				continue
+			}
 			fmt.Println("(Laissez vide pour ne pas changer)")
-
 			name, _ := readLine("Nouveau nom: ")
 			email, _ := readLine("Nouvel email: ")
 			if name == "" && email == "" {
@@ -162,7 +156,5 @@ func main() {
 		default:
 			fmt.Println("Choix invalide.")
 		}
-
 	}
-
 }
