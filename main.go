@@ -71,6 +71,21 @@ func listContacts() {
 
 }
 
+func updateContact(id int, name, email string) error {
+	c, exists := contacts[id]
+	if !exists {
+		return fmt.Errorf("aucun contact avec l'ID %d", id)
+	}
+	if name != "" {
+		c.Name = name
+	}
+	if email != "" {
+		c.Email = email
+	}
+	contacts[id] = c
+	return nil
+}
+
 func main() {
 
 	for {
@@ -78,6 +93,8 @@ func main() {
 		fmt.Println("\n--- Mini-CRM ---")
 		fmt.Println("1. Ajouter un contact")
 		fmt.Println("2. Lister tous les contacts")
+		fmt.Println("3. Supprimer un contact par ID")
+		fmt.Println("4. Mettre à jour un contact")
 		fmt.Println("5. Quitter")
 
 		choice, err := readLine("Votre choix: ")
@@ -89,15 +106,18 @@ func main() {
 		switch choice {
 		case "1":
 			id, err := readInt("ID: ")
+
 			if err != nil {
 				fmt.Println("Erreur:", err)
 				continue
 			}
+
 			name, err := readLine("Nom: ")
 			if err != nil {
 				fmt.Println("Erreur:", err)
 				continue
 			}
+
 			email, err := readLine("Email: ")
 			if err != nil {
 				fmt.Println("Erreur:", err)
@@ -112,6 +132,28 @@ func main() {
 
 		case "2":
 			listContacts()
+
+		case "4":
+			id, err := readInt("ID à mettre à jour: ")
+
+			if err != nil {
+				fmt.Println("Erreur:", err)
+				continue
+			}
+
+			fmt.Println("(Laissez vide pour ne pas changer)")
+
+			name, _ := readLine("Nouveau nom: ")
+			email, _ := readLine("Nouvel email: ")
+			if name == "" && email == "" {
+				fmt.Println("Rien à mettre à jour.")
+				continue
+			}
+			if err := updateContact(id, name, email); err != nil {
+				fmt.Println("Erreur:", err)
+			} else {
+				fmt.Println("Contact mis à jour.")
+			}
 
 		case "5":
 			fmt.Println("Au revoir !")
