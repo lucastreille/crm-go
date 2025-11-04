@@ -1,18 +1,30 @@
 package app
 
-import "github.com/lucastreille/crm-go/internal/storage"
+import (
+	"fmt"
+
+	"github.com/lucastreille/crm-go/internal/notification"
+	"github.com/lucastreille/crm-go/internal/storage"
+)
 
 type App struct {
-	store storage.Storage
+	store     storage.Storage
+	notifiers []notification.Notifier
 }
 
-func New(store storage.Storage) *App {
-	return &App{store: store}
+func New(store storage.Storage, notifiers []notification.Notifier) *App {
+	return &App{store: store, notifiers: notifiers}
 }
 
 func (a *App) AddContact(id int, name, email string) error {
 	c := &storage.Contact{ID: id, Name: name, Email: email}
-	return a.store.Add(c)
+	if err := a.store.Add(c); err != nil {
+		return err
+	}
+
+	msg := fmt.Sprintf("Nouveau contact ajouté : %s (%s)", c.Name, c.Email)
+	notification.NotifyAll(a.notifiers, msg)
+	return nil
 }
 
 func (a *App) ListContacts() ([]*storage.Contact, error) {
@@ -20,7 +32,12 @@ func (a *App) ListContacts() ([]*storage.Contact, error) {
 }
 
 func (a *App) DeleteContact(id int) error {
-	return a.store.Delete(id)
+	if err := a.store.Delete(id); err != nil {
+		return err
+	}
+	msg := fmt.Sprintf("Contact supprimé (ID: %d)", id)
+	notification.NotifyAll(a.notifiers, msg)
+	return nil
 }
 
 func (a *App) UpdateContact(id int, name, email string) error {
@@ -28,11 +45,19 @@ func (a *App) UpdateContact(id int, name, email string) error {
 	if err != nil {
 		return err
 	}
+
 	if name != "" {
 		c.Name = name
 	}
 	if email != "" {
 		c.Email = email
 	}
-	return a.store.Update(c)
+
+	if err := a.store.Update(c); err != nil {
+		return err
+	}
+
+	msg := fmt.Sprintf("Contact mis à jour : %s (%s)", c.Name, c.Email)
+	notification.NotifyAll(a.notifiers, msg)
+	return nil
 }

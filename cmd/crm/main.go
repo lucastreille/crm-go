@@ -4,12 +4,19 @@ import (
 	"fmt"
 
 	"github.com/lucastreille/crm-go/internal/app"
+	"github.com/lucastreille/crm-go/internal/notification"
 	"github.com/lucastreille/crm-go/internal/storage"
 )
 
 func main() {
 	store := storage.NewMemory()
-	application := app.New(store)
+
+	notifiers := []notification.Notifier{
+		notification.EmailNotifier{},
+		notification.SmsNotifier{},
+	}
+
+	application := app.New(store, notifiers)
 
 	for {
 		fmt.Println("\n=== MENU ===")
