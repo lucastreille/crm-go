@@ -17,8 +17,14 @@ func handleFlags() bool {
 			fmt.Println("Erreur: pour ajouter un contact, utilisez -id -name -email")
 			return true
 		}
-		err := addContact(Contact{ID: *idFlag, Name: *nameFlag, Email: *emailFlag})
+
+		c, err := NewContact(*idFlag, *nameFlag, *emailFlag)
 		if err != nil {
+			fmt.Println("Erreur:", err)
+			return true
+		}
+
+		if err := addContact(c); err != nil {
 			fmt.Println("Erreur:", err)
 		} else {
 			fmt.Println("Contact ajouté via flags.")

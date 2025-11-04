@@ -14,7 +14,23 @@ type Contact struct {
 	Email string
 }
 
-var contacts = make(map[int]Contact)
+func NewContact(id int, name, email string) (*Contact, error) {
+	if name == "" || email == "" {
+		return nil, fmt.Errorf("le nom et l'email sont obligatoires")
+	}
+	return &Contact{ID: id, Name: name, Email: email}, nil
+}
+
+func (c *Contact) Update(name, email string) {
+	if name != "" {
+		c.Name = name
+	}
+	if email != "" {
+		c.Email = email
+	}
+}
+
+var contacts = make(map[int]*Contact)
 var reader = bufio.NewReader(os.Stdin)
 
 func readLine(prompt string) (string, error) {
@@ -38,7 +54,7 @@ func readInt(prompt string) (int, error) {
 	return n, nil
 }
 
-func addContact(c Contact) error {
+func addContact(c *Contact) error {
 	if _, exists := contacts[c.ID]; exists {
 		return fmt.Errorf("un contact avec l'ID %d existe déjà", c.ID)
 	}
@@ -55,21 +71,6 @@ func listContacts() {
 	for _, c := range contacts {
 		fmt.Printf("- ID:%d | Nom:%s | Email:%s\n", c.ID, c.Name, c.Email)
 	}
-}
-
-func updateContact(id int, name, email string) error {
-	c, exists := contacts[id]
-	if !exists {
-		return fmt.Errorf("aucun contact avec l'ID %d", id)
-	}
-	if name != "" {
-		c.Name = name
-	}
-	if email != "" {
-		c.Email = email
-	}
-	contacts[id] = c
-	return nil
 }
 
 func deleteContact(id int) error {
@@ -109,7 +110,14 @@ func main() {
 			}
 			name, _ := readLine("Nom: ")
 			email, _ := readLine("Email: ")
-			if err := addContact(Contact{ID: id, Name: name, Email: email}); err != nil {
+
+			c, err := NewContact(id, name, email)
+			if err != nil {
+				fmt.Println("Erreur:", err)
+				continue
+			}
+
+			if err := addContact(c); err != nil {
 				fmt.Println("Erreur:", err)
 			} else {
 				fmt.Println("Contact ajouté.")
@@ -136,18 +144,24 @@ func main() {
 				fmt.Println("Erreur:", err)
 				continue
 			}
+
+			c, ok := contacts[id]
+			if !ok {
+				fmt.Printf("aucun contact avec l'ID %d\n", id)
+				continue
+			}
+
 			fmt.Println("(Laissez vide pour ne pas changer)")
 			name, _ := readLine("Nouveau nom: ")
 			email, _ := readLine("Nouvel email: ")
+
 			if name == "" && email == "" {
 				fmt.Println("Rien à mettre à jour.")
 				continue
 			}
-			if err := updateContact(id, name, email); err != nil {
-				fmt.Println("Erreur:", err)
-			} else {
-				fmt.Println("Contact mis à jour.")
-			}
+
+			c.Update(name, email)
+			fmt.Println("Contact mis à jour.")
 
 		case "5":
 			fmt.Println("Au revoir !")
