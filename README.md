@@ -27,7 +27,7 @@ Un petit **CRM (Customer Relationship Management)** développé en **Go**.
 1. Se placer sur la branche **Main** (ou dans le dossier racine du projet).  
 2. Exécuter la commande suivante :
 
-   ```bash
-   go run .
+  ```bash
+  go run ./cmd/crm
    
 L’application démarre et expose les endpoints du CRM (voir la section “Endpoints” si disponible).
