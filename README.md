@@ -25,10 +25,12 @@ Un petit **CRM (Customer Relationship Management)** développé en **Go**.
 ## Lancement du projet
 
 1. Se placer sur la branche **Main** (ou dans le dossier racine du projet).  
-2. Exécuter la commande suivante :
+2. Exécuter les commandes suivantes :
 
   ```bash
-  go build ./cmd/crm -o crm
+  go build -o crm.exe ./cmd/crm
+
+  //Puis :
   ./crm --db data/contacts.json
    
 L’application démarre et expose les endpoints du CRM (voir la section “Endpoints” si disponible).
