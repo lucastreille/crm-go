@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/lucastreille/crm-go/internal/app"
@@ -9,7 +10,25 @@ import (
 )
 
 func main() {
-	store := storage.NewMemory()
+	dbPath := flag.String("db", "", "Chemin du fichier JSON (ex: data/contacts.json)")
+	flag.Parse()
+
+	var store storage.Storage
+	var err error
+
+	if *dbPath != "" {
+		js, e := storage.NewJSON(*dbPath)
+		if e != nil {
+			fmt.Println("Impossible d'ouvrir la base JSON, fallback mémoire. Erreur:", e)
+			store = storage.NewMemory()
+		} else {
+			store = js
+			fmt.Println("Stockage JSON activé sur", *dbPath)
+		}
+	} else {
+		store = storage.NewMemory()
+		fmt.Println("Stockage mémoire (par défaut)")
+	}
 
 	notifiers := []notification.Notifier{
 		notification.EmailNotifier{},
@@ -41,20 +60,21 @@ func main() {
 			fmt.Print("Email : ")
 			fmt.Scan(&email)
 
-			if err := application.AddContact(id, name, email); err != nil {
+			if err = application.AddContact(id, name, email); err != nil {
 				fmt.Println("Erreur :", err)
 			} else {
 				fmt.Println("Contact ajouté !")
 			}
 
 		case 2:
-			contacts, _ := application.ListContacts()
-			if len(contacts) == 0 {
-				fmt.Println("Aucun contact.")
-				continue
+			contacts, err := application.ListContacts()
+			if err != nil {
+				fmt.Println("Erreur :", err)
+				break
 			}
+			fmt.Println("\nContacts :")
 			for _, c := range contacts {
-				fmt.Printf("ID: %d | Nom: %s | Email: %s\n", c.ID, c.Name, c.Email)
+				fmt.Printf("- [%d] %s <%s>\n", c.ID, c.Name, c.Email)
 			}
 
 		case 3:
