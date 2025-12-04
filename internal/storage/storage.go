@@ -1,7 +1,7 @@
 package storage
 
 type Contact struct {
-	ID    int    `json:"id"`
+	ID    int    `json:"id" gorm:"primaryKey;autoIncrement"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
 }
